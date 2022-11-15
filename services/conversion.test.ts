@@ -3,14 +3,8 @@ import { Conversion } from "./conversion.ts";
 
 Deno.test("Conversion Purchased Number", async () => {
   const conversion = new Conversion("Daily");
-  conversion.addPurchase(100);
+  conversion.addPurchase();
   assertEquals(1, conversion.getPurchases());
-});
-
-Deno.test("Conversion Revenue", async () => {
-  const conversion = new Conversion("Type");
-  conversion.addPurchase(100);
-  assertEquals(100, conversion.getRevenue());
 });
 
 Deno.test("Conversion Sessions", async () => {
@@ -28,6 +22,17 @@ Deno.test("Conversion Sessions - Multiple", async () => {
 
 Deno.test("Conversion Type", async () => {
   const conversion = new Conversion("Daily");
-  conversion.addPurchase(100);
+  conversion.addPurchase();
   assertEquals("Daily", conversion.getType());
+});
+
+
+Deno.test("Conversion Success Rate", async () =>{
+    const conversion = new Conversion("Daily");
+    conversion.addPurchase();
+    conversion.addSession();
+    conversion.addSession();
+    conversion.addSession();
+    conversion.addSession();
+    assertEquals(25, conversion.getSuccessRate());
 });
