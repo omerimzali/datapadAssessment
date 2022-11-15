@@ -34,5 +34,5 @@ Deno.test("Conversion Success Rate", async () =>{
     conversion.addSession();
     conversion.addSession();
     conversion.addSession();
-    assertEquals(25, conversion.getSuccessRate());
+    assertEquals(25, parseFloat(conversion.getSuccessRate()));
 });
