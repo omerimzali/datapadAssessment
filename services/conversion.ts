@@ -1,5 +1,5 @@
 
-export class Brand{
+export class Conversion{
     type: string;
     sessions: number;
     totalPurchased: number;
