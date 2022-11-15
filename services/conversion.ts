@@ -31,10 +31,12 @@ export class Conversion{
 
     public getSessions():number{
         return this.sessions;
+       
     }
 
-    public getSuccessRate():number{
-        return ((100*this.totalPurchased)/this.sessions).toFixed(3);
+    public getSuccessRate():string{
+        return ((100*this.totalPurchased)/this.sessions).toFixed(2);
+        
     }
   
   }
