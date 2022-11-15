@@ -1,6 +1,8 @@
 import * as mod from "https://deno.land/std@0.164.0/collections/mod.ts";
 import { Brand } from "./brand.ts";
-import { parse as parseCsv } from "https://deno.land/std@0.82.0/encoding/csv.ts";
+import { Conversion } from "./conversion.ts";
+import { parse as parseCsv } from "https://deno.land/std@0.164.0/encoding/csv.ts";
+import { parse,format } from "https://deno.land/std@0.164.0/datetime/mod.ts";
 
 export interface DataSourceOptions {
   type: "file" | "googlesheet";
@@ -57,6 +59,7 @@ export class Spreadsheet {
         ],
       },
     );
+    this.data = content;
     return content;
   }
 
@@ -67,7 +70,8 @@ export class Spreadsheet {
   public async getAvgRevenueBrand() {
     const result:any = {};
     const brands:any = {};
-    this.data = await this.readSpreadsheet();
+
+    this.data =  await this.readSpreadsheet();
 
     this.data.forEach((element) => {
       if(element.eventType === 'purchase'){
@@ -78,7 +82,7 @@ export class Spreadsheet {
         }
     
         brands[element.brand].addPurchase(parseFloat(element.price));
-        result[element.brand] = {"value":brands[element.brand].getAvgRevenue()};
+        result[element.brand] = {"value":brands[element.brand].getAvgRevenue()}; /** @todo Move this line out of this loop */
       }
     });
     return result;
@@ -88,6 +92,36 @@ export class Spreadsheet {
   }
 
   public async getDailyConversion() {
+    const result = {};
+    const days = {};
+    const sessions = {};
+
+    await this.readSpreadsheet();
+
+    this.data.forEach((element) => {
+    
+      let day = parse(element.evenTime, "d/M/yyyy H:mm:ss"); 
+      day = format(day, "dd-MM-yyyy"); 
+
+      if(!days[day]){
+        let conversion = new Conversion(day);
+        days[day] = conversion;
+      }
+
+      if(!sessions[element.sessions]){
+        sessions[element.session];
+        days[day].addSession();
+      }
+  
+
+      if(element.eventType === 'purchase'){
+        days[day].addPurchase();
+      }
+
+      result[day] = {"sessions":days[day].getSessions(), "purchases": days[day].getPurchases(),"value":days[day].getSuccessRate()};
+
+    });
+    return result;
   }
 
   public async getRevenueListOfCustomer(from_date: string, end_date: string) {

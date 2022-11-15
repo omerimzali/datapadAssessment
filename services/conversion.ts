@@ -34,7 +34,7 @@ export class Conversion{
     }
 
     public getSuccessRate():number{
-        return 100/this.sessions/this.totalPurchased;
+        return ((100*this.totalPurchased)/this.sessions).toFixed(3);
     }
   
   }
