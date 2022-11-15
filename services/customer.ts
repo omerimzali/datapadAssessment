@@ -12,9 +12,13 @@ export class Customer{
     public addRevenue(amount: number){
       this.totalRevenue = this.totalRevenue+amount;
     }
+
+    public addRefund(amount: number){
+        this.totalRevenue = this.totalRevenue-amount;
+    }
   
-    public getNetRevenue():number{
-        return this.totalRevenue;
+    public getNetRevenue():string{
+        return  (this.totalRevenue).toFixed(2);
     }
   
     public getName():string{
