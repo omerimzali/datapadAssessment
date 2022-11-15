@@ -23,6 +23,6 @@ Deno.test("Daily Conversion Date", async () =>  {
 
 Deno.test("Net Revenue of Each Customer", async () =>  {
   const spreadsheet = new Spreadsheet({ type: "file", source: "file" });
-  const netRevenueList = await spreadsheet.getRevenueListOfCustomer();
+  const netRevenueList = await spreadsheet.getRevenueListOfCustomer("2020-09-10", "2020-11-10");
   assertEquals(100,netRevenueList["Omer"]["value"]);
 });
