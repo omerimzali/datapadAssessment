@@ -1,13 +1,15 @@
 import * as mod from "https://deno.land/std@0.164.0/collections/mod.ts";
-import { Brand } from "./brand.ts";
-import { Conversion } from "./conversion.ts";
-import { Customer } from "./customer.ts";
 import { parse as parseCsv } from "https://deno.land/std@0.164.0/encoding/csv.ts";
 import {
   format,
   parse,
   weekOfYear,
 } from "https://deno.land/std@0.164.0/datetime/mod.ts";
+import { API_KEY, GOOGLE_SHEET_API_URL, SPREADSHEET_ID, SHEET_NAME} from "../config.ts";
+import { Brand } from "./brand.ts";
+import { Conversion } from "./conversion.ts";
+import { Customer } from "./customer.ts";
+
 export interface DataSourceOptions {
   type: "file" | "googlesheet";
   source: string;
@@ -27,7 +29,7 @@ export class Spreadsheet {
       source: "goooglesheetURL",
     },
   ) {
-    console.log(options);
+   
     this.dataType = options.type;
     this.source = options.source;
   }
@@ -45,7 +47,7 @@ export class Spreadsheet {
 
   public async readGoogleSheet() {
     this.data = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg/values/Dataset?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4  `,
+      `${GOOGLE_SHEET_API_URL}/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`
     )
       .then((res) => res.json())
       .then((res) => res.values);
@@ -61,7 +63,7 @@ export class Spreadsheet {
       ["user"]: value[7],
       ["session"]: value[8],
     }));
-
+    this.data.shift();
     return this.data;
   }
 
@@ -96,8 +98,9 @@ export class Spreadsheet {
     const brands: any = {};
 
     this.data = await this.readSpreadsheet();
-
+   
     this.data.forEach((element) => {
+      
       if (element.eventType === "purchase") {
         if (!brands[element.brand]) {
           let brand = new Brand(element.brand);
@@ -109,7 +112,7 @@ export class Spreadsheet {
     });
 
     Object.entries(brands).forEach(([brand]) => {
-      result[brand]["value"] = brands[brand].getNetRevenue();
+      result[brand] ={"value":brands[brand].getAvgRevenue()};
     });
     return result;
   }
@@ -122,6 +125,7 @@ export class Spreadsheet {
     await this.readSpreadsheet();
 
     this.data.forEach((element) => {
+   
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
       let week = weekOfYear(day);
 
@@ -137,7 +141,8 @@ export class Spreadsheet {
     });
 
     Object.entries(weeks).forEach(([week]) => {
-      result[week]["value"] = weeks[week].getNetRevenue();
+ 
+      result[week] = {"value":weeks[week].getSessions()};
     });
 
     return result;
@@ -170,9 +175,7 @@ export class Spreadsheet {
     });
 
     Object.entries(days).forEach(([day]) => {
-      result[day]["sessions"] = days[day].getSessions(),
-        result[day]["purchases"] = days[day].getPurchases(),
-        result[day]["value"] = days[day].getSuccessRate();
+        result[day] = {"sessions":days[day].getSessions(),"purchases":days[day].getPurchases(),"value": days[day].getSuccessRate()};
     });
     return result;
   }
@@ -207,7 +210,7 @@ export class Spreadsheet {
     });
 
     Object.entries(customers).forEach(([customer]) => {
-      result[customer]["value"] = customers[customer].getNetRevenue();
+      result[customer] = {"value":customers[customer].getNetRevenue()};
     });
     return result;
   }
