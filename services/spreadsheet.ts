@@ -13,6 +13,10 @@ export interface DataSourceOptions {
   source: string;
 }
 
+export interface ResultData {
+  [key: string]: any[];
+}
+
 export class Spreadsheet {
   dataType: string;
   source: string;
@@ -40,10 +44,6 @@ export class Spreadsheet {
   }
 
   public async readGoogleSheet() {
-    /**
-     * https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4
-     * https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg/values/Dataset?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4
-     */
     this.data = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg/values/Dataset?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4  `,
     )
@@ -108,9 +108,9 @@ export class Spreadsheet {
       }
     });
 
-    result = brands.map((brand) => ({
-      ["value"]: brands[brand].getAvgRevenue(),
-    }));
+    Object.entries(brands).forEach(([brand]) => {
+      result[brand]["value"] = brands[brand].getNetRevenue();
+    });
     return result;
   }
 
@@ -134,20 +134,18 @@ export class Spreadsheet {
         sessions[element.session];
         weeks[week].addSession();
       }
-
-      result[week] = {
-        "sessions": weeks[week].getSessions(),
-      };
     });
-    result = weeks.map((week) => ({
-      ["sessions"]: week.getAvgRevenue(),
-    }));
+
+    Object.entries(weeks).forEach(([week]) => {
+      result[week]["value"] = weeks[week].getNetRevenue();
+    });
+
     return result;
   }
 
   public async getDailyConversion() {
     let result = {};
-    const days:any = {};
+    const days: any = {};
     const sessions = {};
 
     await this.readSpreadsheet();
@@ -169,14 +167,13 @@ export class Spreadsheet {
       if (element.eventType === "purchase") {
         days[day].addPurchase();
       }
-
-
     });
-    result = days.map((day) => ({
-      ["sessions"]: day.getSessions(),
-      ["purchases"]: day.getPurchases(),
-      ["value"]: day.getSuccessRate(),
-    }));
+
+    Object.entries(days).forEach(([day]) => {
+      result[day]["sessions"] = days[day].getSessions(),
+        result[day]["purchases"] = days[day].getPurchases(),
+        result[day]["value"] = days[day].getSuccessRate();
+    });
     return result;
   }
 
@@ -184,14 +181,12 @@ export class Spreadsheet {
     const fromDate = new Date(from);
     const endDate = new Date(end);
     let result = {};
-    const customers:any = {};
+    const customers = {};
 
     await this.readSpreadsheet();
 
     this.data.forEach((element) => {
-      let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
-      const dateDay = new Date(format(day, "yyyy-MM-dd"));
-
+      const dateDay = new Date(element.eventTime);
       if (
         dateDay >= fromDate && dateDay <= endDate &&
         (element.eventType === "purchase" || element.eventType === "refund")
@@ -208,17 +203,12 @@ export class Spreadsheet {
         if (element.eventType === "refund") {
           customers[element.user].addRefund(parseFloat(element.price));
         }
-
-        result[element.user] = {
-          "value": customers[element.user].getNetRevenue(),
-        };
       }
-
     });
 
-    result = customers.map((customer) => ({
-      ["value"]: customer.getNetRevenue(),
-    }));
+    Object.entries(customers).forEach(([customer]) => {
+      result[customer]["value"] = customers[customer].getNetRevenue();
+    });
     return result;
   }
 }
