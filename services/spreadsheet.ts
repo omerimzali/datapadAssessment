@@ -3,7 +3,11 @@ import { Brand } from "./brand.ts";
 import { Conversion } from "./conversion.ts";
 import { Customer } from "./customer.ts";
 import { parse as parseCsv } from "https://deno.land/std@0.164.0/encoding/csv.ts";
-import { format, parse, weekOfYear } from "https://deno.land/std@0.164.0/datetime/mod.ts";
+import {
+  format,
+  parse,
+  weekOfYear,
+} from "https://deno.land/std@0.164.0/datetime/mod.ts";
 export interface DataSourceOptions {
   type: "file" | "googlesheet";
   source: string;
@@ -22,7 +26,6 @@ export class Spreadsheet {
     console.log(options);
     this.dataType = options.type;
     this.source = options.source;
-
   }
 
   private async readSpreadsheet() {
@@ -36,9 +39,30 @@ export class Spreadsheet {
     }
   }
 
-  private async readGoogleSheet() {
-    /** @todo */
-    this.readFile();
+  public async readGoogleSheet() {
+    /**
+     * https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4
+     * https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg/values/Dataset?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4
+     */
+    this.data = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/1frVzuJCImzpP-zEhSrzuQGV0rUp3mFxV5OfG0z1UZYg/values/Dataset?key=AIzaSyBler_9a4lG0EQojqwWvBS5OtZHW_19kd4  `,
+    )
+      .then((res) => res.json())
+      .then((res) => res.values);
+
+    this.data = this.data.map((value) => ({
+      ["eventTime"]: value[0],
+      ["eventType"]: value[1],
+      ["product"]: value[2],
+      ["category"]: value[3],
+      ["categoryCode"]: value[4],
+      ["brand"]: value[5],
+      ["price"]: value[6],
+      ["user"]: value[7],
+      ["session"]: value[8],
+    }));
+
+    return this.data;
   }
 
   private async readFile() {
@@ -68,7 +92,7 @@ export class Spreadsheet {
   }
 
   public async getAvgRevenueBrand() {
-    const result: any = {};
+    let result: any = {};
     const brands: any = {};
 
     this.data = await this.readSpreadsheet();
@@ -81,17 +105,18 @@ export class Spreadsheet {
         }
 
         brands[element.brand].addPurchase(parseFloat(element.price));
-        result[element.brand] = {
-          "value": brands[element.brand].getAvgRevenue(),
-        }; /** @todo Move this line out of this loop */
       }
     });
+
+    result = brands.map((brand) => ({
+      ["value"]: brands[brand].getAvgRevenue(),
+    }));
     return result;
   }
 
   public async getWeeklySessions() {
-    const result = {};
-    const weeks = {};
+    let result = {};
+    const weeks: any = {};
     const sessions = {};
 
     await this.readSpreadsheet();
@@ -110,20 +135,19 @@ export class Spreadsheet {
         weeks[week].addSession();
       }
 
-   
-
       result[week] = {
-        "sessions": weeks[week].getSessions()
+        "sessions": weeks[week].getSessions(),
       };
-      
     });
+    result = weeks.map((week) => ({
+      ["sessions"]: week.getAvgRevenue(),
+    }));
     return result;
-
   }
 
   public async getDailyConversion() {
-    const result = {};
-    const days = {};
+    let result = {};
+    const days:any = {};
     const sessions = {};
 
     await this.readSpreadsheet();
@@ -146,56 +170,55 @@ export class Spreadsheet {
         days[day].addPurchase();
       }
 
-      result[day] = {
-        "sessions": days[day].getSessions(),
-        "purchases": days[day].getPurchases(),
-        "value": days[day].getSuccessRate(),
-      };
+
     });
+    result = days.map((day) => ({
+      ["sessions"]: day.getSessions(),
+      ["purchases"]: day.getPurchases(),
+      ["value"]: day.getSuccessRate(),
+    }));
     return result;
   }
 
   public async getRevenueListOfCustomer(from: string, end: string) {
     const fromDate = new Date(from);
     const endDate = new Date(end);
-    const result = {};
-    const customers = {};
-  
+    let result = {};
+    const customers:any = {};
 
     await this.readSpreadsheet();
 
     this.data.forEach((element) => {
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
       const dateDay = new Date(format(day, "yyyy-MM-dd"));
-     
-   
-      if( dateDay >= fromDate &&  dateDay <= endDate && (element.eventType === 'purchase' || element.eventType === 'refund')){
-        if(!customers[element.user]){
 
-      
-        let customer = new Customer(element.user);
-        customers[element.user] = customer;
+      if (
+        dateDay >= fromDate && dateDay <= endDate &&
+        (element.eventType === "purchase" || element.eventType === "refund")
+      ) {
+        if (!customers[element.user]) {
+          let customer = new Customer(element.user);
+          customers[element.user] = customer;
         }
 
-        if(element.eventType === 'purchase'){
+        if (element.eventType === "purchase") {
           customers[element.user].addRevenue(parseFloat(element.price));
         }
-        
-    
-        if(element.eventType === 'refund'){
+
+        if (element.eventType === "refund") {
           customers[element.user].addRefund(parseFloat(element.price));
         }
-      
-        result[element.user] = {
-          "value": customers[element.user].getNetRevenue()
-        };
 
-        
+        result[element.user] = {
+          "value": customers[element.user].getNetRevenue(),
+        };
       }
-      
-  
- 
+
     });
+
+    result = customers.map((customer) => ({
+      ["value"]: customer.getNetRevenue(),
+    }));
     return result;
   }
 }
