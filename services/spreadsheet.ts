@@ -5,20 +5,30 @@ import {
   parse,
   weekOfYear,
 } from "https://deno.land/std@0.164.0/datetime/mod.ts";
-import { API_KEY, GOOGLE_SHEET_API_URL, SPREADSHEET_ID, SHEET_NAME} from "../config.ts";
+import {
+  API_KEY,
+  GOOGLE_SHEET_API_URL,
+  SHEET_NAME,
+  SPREADSHEET_ID,
+} from "../config.ts";
 import { Brand } from "./brand.ts";
 import { Conversion } from "./conversion.ts";
 import { Customer } from "./customer.ts";
-
+/**
+ * DataSourceOption Interface
+ * It's using to define datasource for Spreadsheet class.
+ * @param {string}  type
+ * @param {string} source
+ */
 export interface DataSourceOptions {
   type: "file" | "googlesheet";
   source: string;
 }
 
-export interface ResultData {
-  [key: string]: any[];
-}
-
+/**
+ * Spreadsheet Class
+ * To get read and calculate metrics with csv files or googlespreadsheets.
+ */
 export class Spreadsheet {
   dataType: string;
   source: string;
@@ -29,11 +39,14 @@ export class Spreadsheet {
       source: "goooglesheetURL",
     },
   ) {
-   
     this.dataType = options.type;
     this.source = options.source;
   }
 
+  /**
+   * SpreadSheet.readSpreadsheet
+   * A Private function to decide which reading function to use.
+   */
   private async readSpreadsheet() {
     switch (this.dataType) {
       case "googlesheet":
@@ -45,9 +58,13 @@ export class Spreadsheet {
     }
   }
 
-  public async readGoogleSheet() {
+  /**
+   * SpreadSheet.readSpreadsheet
+   * A Private function to read Google spread sheet data
+   */
+  private async readGoogleSheet() {
     this.data = await fetch(
-      `${GOOGLE_SHEET_API_URL}/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`
+      `${GOOGLE_SHEET_API_URL}/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`,
     )
       .then((res) => res.json())
       .then((res) => res.values);
@@ -67,6 +84,10 @@ export class Spreadsheet {
     return this.data;
   }
 
+    /**
+   * SpreadSheet.readFile
+   * A Private function to read csv files
+   */
   private async readFile() {
     const content = await parseCsv(
       await Deno.readTextFileSync(this.source),
@@ -89,18 +110,27 @@ export class Spreadsheet {
     return content;
   }
 
+    /**
+   * SpreadSheet.readFile
+   * A function to get read data.
+   * @return {object} this.data
+   */
   public async getData() {
     return this.data;
   }
+  /**
+   * Spreadsheet.getAvgRevenueBrand() 
+   * A function to get Average Revenue of Brand
+   * @return {object} 
+   */
 
   public async getAvgRevenueBrand() {
     let result: any = {};
     const brands: any = {};
 
     this.data = await this.readSpreadsheet();
-   
+
     this.data.forEach((element) => {
-      
       if (element.eventType === "purchase") {
         if (!brands[element.brand]) {
           let brand = new Brand(element.brand);
@@ -112,11 +142,15 @@ export class Spreadsheet {
     });
 
     Object.entries(brands).forEach(([brand]) => {
-      result[brand] ={"value":brands[brand].getAvgRevenue()};
+      result[brand] = { "value": brands[brand].getAvgRevenue() };
     });
     return result;
   }
-
+  /**
+   * SpreadSheet.getWeeklySessions
+   * A function to get Weekly Session numbers.
+   * @return {object} 
+   */
   public async getWeeklySessions() {
     let result = {};
     const weeks: any = {};
@@ -125,7 +159,6 @@ export class Spreadsheet {
     await this.readSpreadsheet();
 
     this.data.forEach((element) => {
-   
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
       let week = weekOfYear(day);
 
@@ -141,13 +174,16 @@ export class Spreadsheet {
     });
 
     Object.entries(weeks).forEach(([week]) => {
- 
-      result[week] = {"value":weeks[week].getSessions()};
+      result[week] = { "value": weeks[week].getSessions() };
     });
 
     return result;
   }
-
+  /**
+   * SpreadSheet.getDailyConversion
+   * A function to get daily sessions, purchased sessions and session/purchased session ratio
+   * @return {object} 
+   */
   public async getDailyConversion() {
     let result = {};
     const days: any = {};
@@ -175,11 +211,20 @@ export class Spreadsheet {
     });
 
     Object.entries(days).forEach(([day]) => {
-        result[day] = {"sessions":days[day].getSessions(),"purchases":days[day].getPurchases(),"value": days[day].getSuccessRate()};
+      result[day] = {
+        "sessions": days[day].getSessions(),
+        "purchases": days[day].getPurchases(),
+        "value": days[day].getSuccessRate(),
+      };
     });
     return result;
   }
 
+   /**
+   * SpreadSheet.getDailyConversion
+   * A function to get total revenue of customers.
+   * @return {object} 
+   */
   public async getRevenueListOfCustomer(from: string, end: string) {
     const fromDate = new Date(from);
     const endDate = new Date(end);
@@ -210,7 +255,7 @@ export class Spreadsheet {
     });
 
     Object.entries(customers).forEach(([customer]) => {
-      result[customer] = {"value":customers[customer].getNetRevenue()};
+      result[customer] = { "value": customers[customer].getNetRevenue() };
     });
     return result;
   }
