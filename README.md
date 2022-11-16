@@ -13,6 +13,11 @@ This repo created for [DatapodOfficial Assesment]('https://github.com/datapadoff
 There are 4 Classes called Brand, Conversion, Customer and SpreadSheet.
 SpreadSheet is doing the call, over GoogleSheets API and  It's calculating the expected metric.
 
+A worker that periodically pulls this data and prepares the metrics (every 5 minutes) can provide a much faster response. But I did not work in this direction because I think that this does not meet the scope of the test case.
+
+## notes
+I used customer_id instead of customer name, because the data doesn't provide customer names.
+
 
 # Endpoints
 
