@@ -1,4 +1,3 @@
-import * as mod from "https://deno.land/std@0.164.0/collections/mod.ts";
 import { parse as parseCsv } from "https://deno.land/std@0.164.0/encoding/csv.ts";
 import {
   format,
@@ -27,11 +26,16 @@ export interface DataSourceOptions {
   type: "file" | "googlesheet";
   source: string;
 }
-
+/**
+ * EnumValues for Spreadsheet Data-DatasourceTypes
+ */
 enum DataTypes {
   File = "file",
   GoogleSheet = "googlesheet",
 }
+/**
+ * Enum Values for EventTypes
+ */
 
 enum EvenTypes {
   Purchase = "purchase",
@@ -64,11 +68,9 @@ export class Spreadsheet {
   private async readSpreadsheet() {
     switch (this.dataType) {
       case DataTypes.GoogleSheet:
-        return await this.readGoogleSheet();
-        break;
+        return await this.readGoogleSheet(); 
       case DataTypes.File:
         return await this.readFile();
-        break;
     }
   }
 
@@ -132,7 +134,7 @@ export class Spreadsheet {
    * A function to get read data.
    * @return {object} this.data
    */
-  public async getData() {
+  public  getData() {
     return this.data;
   }
   /**
@@ -150,7 +152,7 @@ export class Spreadsheet {
     this.data.forEach((element: Row) => {
       if (element.eventType === EvenTypes.Purchase) {
         if (!brands[element.brand]) {
-          let brand = new Brand(element.brand);
+          const brand = new Brand(element.brand);
           brands[element.brand] = brand;
         }
 
@@ -176,8 +178,8 @@ export class Spreadsheet {
     await this.readSpreadsheet();
 
     this.data.forEach((element: Row) => {
-      let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
-      let week= String(weekOfYear(day));
+      const day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
+      const week= String(weekOfYear(day));
 
       if (!weeks[week]) {
         weeks[week] = new Conversion(week);

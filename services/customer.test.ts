@@ -1,13 +1,13 @@
 import { assertEquals } from "https://deno.land/std@0.164.0/testing/asserts.ts";
 import { Customer } from "./customer.ts";
 
-Deno.test("Add Revenue", async () => {
+Deno.test("Add Revenue", () => {
   const customer = new Customer("Customer");
   customer.addRevenue(100);
   assertEquals("100.00", customer.getNetRevenue());
 });
 
-Deno.test("Add Refund", async () => {
+Deno.test("Add Refund",  () => {
     const customer = new Customer("Customer");
     customer.addRevenue(100);
     customer.addRefund(50);
@@ -15,7 +15,7 @@ Deno.test("Add Refund", async () => {
   });
 
   
-Deno.test("Get Customer", async () => {
+Deno.test("Get Customer",  () => {
   const customer = new Customer("CustomerName");
   assertEquals("CustomerName", customer.getName());
 });

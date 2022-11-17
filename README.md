@@ -34,16 +34,16 @@ I add my own GoogleSpreadSheet API.K€Y by own purpose. I know credentials are 
 # Endpoints
 
 ## Avg. Revenue by Brand
-`http://127.0.0.1:3001/metrics?id=revenue&dimensions=brand&aggregate=avg` or `http://localhost:8080/metrics?id=revenue&dimensions=brand&aggregate=avg`
+`http://127.0.0.1:3001/metrics?id=revenue&dimensions=brand&aggregate=avg` or Docker:`http://localhost:8080/metrics?id=revenue&dimensions=brand&aggregate=avg`
 
 ## Weekly Sessions
-`http://127.0.0.1:3001/metrics?id=sessions&dimensions=date.weeknum&aggregate=distinct` or `http://localhost:8080/metrics?id=sessions&dimensions=date.weeknum&aggregate=distinct`
+`http://127.0.0.1:3001/metrics?id=sessions&dimensions=date.weeknum&aggregate=distinct` or Docker:`http://localhost:8080/metrics?id=sessions&dimensions=date.weeknum&aggregate=distinct`
 
 ## Daily Conversion Date %
-- `http://127.0.0.1:3001/metrics?id=conversion&dimensions=date&aggregate=distinct`  or `http://localhost:8080/metrics?id=conversion&dimensions=date&aggregate=distinct`
+- `http://127.0.0.1:3001/metrics?id=conversion&dimensions=date&aggregate=distinct`  or Docker:`http://localhost:8080/metrics?id=conversion&dimensions=date&aggregate=distinct`
 
 
 ## Net Revenue of Each Customer
--`http://127.0.0.1:3001/metrics?id=net-revenue&dimensions=customer&aggregate=sum&filter.date.from=2020-09-10&filter.date.to=2020-09-29`  or `http://localhost:8080/metrics?id=net-revenue&dimensions=customer&aggregate=sum&filter.date.from=2020-09-10&filter.date.to=2020-09-29`
+-`http://127.0.0.1:3001/metrics?id=net-revenue&dimensions=customer&aggregate=sum&filter.date.from=2020-09-10&filter.date.to=2020-09-29`  or Docker:`http://localhost:8080/metrics?id=net-revenue&dimensions=customer&aggregate=sum&filter.date.from=2020-09-10&filter.date.to=2020-09-29`
 
 
