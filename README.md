@@ -26,9 +26,9 @@ You can run test with `deno test` command. Tests are provided
 You can get documents with `deno doc` or `deno doc --json` 
 
 ## notes
-I used customer_id instead of customer name, because the data doesn't provide customer names.
-I created a local file to run tests local.
-I add my own GoogleSpreadSheet API.K€Y by own purpose. I know credentials are dangerous to be shared in a public format. I did it for you to have more easy installation steps.
+-I used customer_id instead of customer name, because the data doesn't provide customer names.
+-I created a local file to run tests local.
+-I add my own GoogleSpreadSheet API.K€Y by own purpose. I know credentials are dangerous to be shared in a public format. I did it for you to have more easy installation steps.
 
 
 # Endpoints
