@@ -2,13 +2,14 @@
 ## Install with repository
 - First you need to [Install Deno]('https://deno.land/manual@v1.28.0/getting_started/installation'). You can install with this command below (for Mac Os X - Linux)
   ```curl -fsSL https://deno.land/x/install/install.sh | sh```
-- .env should be created. (There's an example called .env.example )
+- .env should be created. (There's an example called .env.example ) (You should provide API_KEY)
 - run the command below in repository directory
 - ``` deno run --allow-read --allow-env --allow-net app.ts``` ps: be sure to say yes grant access request via terminal
 - 
 - Default IP:port will be 127.0.0.1:3001, You can change it with .env file
 ## Install with Docker
 - There are 2 Dockerfiles in this repository. If you're a ARM based processor user, you can use directly `Dockerfile`. If you're not, change the name and use the other one called `Dockerfile.notarm`. I didn't have a chance to try this second one but I used offical deno image in it.
+- You shuld provide the api key to `docker-compose.yml`
 -  `docker build -t denoadaptorcase .`
 -  `docker run -dp 8080:8080 denadaptorcase`
 # Details
@@ -29,6 +30,8 @@ You can get documents with `deno doc` or `deno doc --json`
 -I used customer_id instead of customer name, because the data doesn't provide customer names.
 -I created a local file to run tests local.
 -I add my own GoogleSpreadSheet API.K€Y by own purpose. I know credentials are dangerous to be shared in a public format. I did it for you to have more easy installation steps.
+### New Notes
+- Google sent an e-mail stating that I shared the key in a public format and restricted the Key. So I'm removing the api-keys.
 
 
 # Endpoints
