@@ -14,6 +14,8 @@ import {
 import { Brand } from "./brand.ts";
 import { Conversion } from "./conversion.ts";
 import { Customer } from "./customer.ts";
+import { Metrics, Row, RowList } from "../types/mod.ts";
+
 /**
  * DataSourceOption Interface
  * It's using to define datasource for Spreadsheet class.
@@ -25,6 +27,16 @@ export interface DataSourceOptions {
   source: string;
 }
 
+enum DataTypes {
+  File = "file",
+  GoogleSheet = "googlesheet",
+}
+
+enum EvenTypes {
+  Purchase = "purchase",
+  Refund = "refund",
+}
+
 /**
  * Spreadsheet Class
  * To get read and calculate metrics with csv files or googlespreadsheets.
@@ -32,10 +44,10 @@ export interface DataSourceOptions {
 export class Spreadsheet {
   dataType: string;
   source: string;
-  data?: any;
+  data?: RowList;
   constructor(
     options: DataSourceOptions = {
-      type: "googlesheet",
+      type: DataTypes.GoogleSheet,
       source: "goooglesheetURL",
     },
   ) {
@@ -49,10 +61,10 @@ export class Spreadsheet {
    */
   private async readSpreadsheet() {
     switch (this.dataType) {
-      case "googlesheet":
+      case DataTypes.GoogleSheet:
         return await this.readGoogleSheet();
         break;
-      case "file":
+      case DataTypes.File:
         return await this.readFile();
         break;
     }
@@ -69,22 +81,23 @@ export class Spreadsheet {
       .then((res) => res.json())
       .then((res) => res.values);
 
-    this.data = this.data.map((value) => ({
-      ["eventTime"]: value[0],
-      ["eventType"]: value[1],
-      ["product"]: value[2],
-      ["category"]: value[3],
-      ["categoryCode"]: value[4],
-      ["brand"]: value[5],
-      ["price"]: value[6],
-      ["user"]: value[7],
-      ["session"]: value[8],
-    }));
-    this.data.shift();
+    this.data = this.data.slice(1, this.data.length).map((value) =>
+      <Row> {
+        eventTime: value[0],
+        eventType: value[1],
+        product: value[2],
+        category: value[3],
+        categoryCode: value[4],
+        brand: value[5],
+        price: value[6],
+        user: value[7],
+        session: value[8],
+      }
+    );
     return this.data;
   }
 
-    /**
+  /**
    * SpreadSheet.readFile
    * A Private function to read csv files
    */
@@ -110,7 +123,7 @@ export class Spreadsheet {
     return content;
   }
 
-    /**
+  /**
    * SpreadSheet.readFile
    * A function to get read data.
    * @return {object} this.data
@@ -119,9 +132,9 @@ export class Spreadsheet {
     return this.data;
   }
   /**
-   * Spreadsheet.getAvgRevenueBrand() 
+   * Spreadsheet.getAvgRevenueBrand()
    * A function to get Average Revenue of Brand
-   * @return {object} 
+   * @return {object}
    */
 
   public async getAvgRevenueBrand() {
@@ -130,8 +143,8 @@ export class Spreadsheet {
 
     this.data = await this.readSpreadsheet();
 
-    this.data.forEach((element) => {
-      if (element.eventType === "purchase") {
+    this.data.forEach((element: Row) => {
+      if (element.eventType === EvenTypes.Purchase) {
         if (!brands[element.brand]) {
           let brand = new Brand(element.brand);
           brands[element.brand] = brand;
@@ -149,7 +162,7 @@ export class Spreadsheet {
   /**
    * SpreadSheet.getWeeklySessions
    * A function to get Weekly Session numbers.
-   * @return {object} 
+   * @return {object}
    */
   public async getWeeklySessions() {
     let result = {};
@@ -158,13 +171,12 @@ export class Spreadsheet {
 
     await this.readSpreadsheet();
 
-    this.data.forEach((element) => {
+    this.data.forEach((element: Row) => {
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
       let week = weekOfYear(day);
 
       if (!weeks[week]) {
-        let conversion = new Conversion(week);
-        weeks[week] = conversion;
+        weeks[week] = new Conversion(week);
       }
 
       if (!sessions[element.sessions]) {
@@ -182,30 +194,29 @@ export class Spreadsheet {
   /**
    * SpreadSheet.getDailyConversion
    * A function to get daily sessions, purchased sessions and session/purchased session ratio
-   * @return {object} 
+   * @return {object}
    */
   public async getDailyConversion() {
-    let result = {};
-    const days: any = {};
+    const result = {};
+    const days = {};
     const sessions = {};
 
     await this.readSpreadsheet();
 
-    this.data.forEach((element) => {
+    this.data.forEach((element: Row) => {
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
       day = format(day, "dd-MM-yyyy");
 
       if (!days[day]) {
-        let conversion = new Conversion(day);
-        days[day] = conversion;
+        days[day] = new Conversion(day);
       }
 
       if (!sessions[element.sessions]) {
-        sessions[element.session];
+        sessions[element.session] = element.session;
         days[day].addSession();
       }
 
-      if (element.eventType === "purchase") {
+      if (element.eventType === EvenTypes.Purchase) {
         days[day].addPurchase();
       }
     });
@@ -220,35 +231,35 @@ export class Spreadsheet {
     return result;
   }
 
-   /**
+  /**
    * SpreadSheet.getDailyConversion
    * A function to get total revenue of customers.
-   * @return {object} 
+   * @return {object}
    */
   public async getRevenueListOfCustomer(from: string, end: string) {
     const fromDate = new Date(from);
     const endDate = new Date(end);
-    let result = {};
+    const result = {};
     const customers = {};
 
     await this.readSpreadsheet();
 
-    this.data.forEach((element) => {
+    this.data.forEach((element: Row) => {
       const dateDay = new Date(element.eventTime);
       if (
         dateDay >= fromDate && dateDay <= endDate &&
-        (element.eventType === "purchase" || element.eventType === "refund")
+        (element.eventType === EvenTypes.Purchase || element.eventType === EvenTypes.Refund)
       ) {
         if (!customers[element.user]) {
-          let customer = new Customer(element.user);
-          customers[element.user] = customer;
+          customers[element.user] = new Customer(element.user);
+  
         }
 
-        if (element.eventType === "purchase") {
+        if (element.eventType === EvenTypes.Purchase) {
           customers[element.user].addRevenue(parseFloat(element.price));
         }
 
-        if (element.eventType === "refund") {
+        if (element.eventType === EvenTypes.Refund) {
           customers[element.user].addRefund(parseFloat(element.price));
         }
       }
