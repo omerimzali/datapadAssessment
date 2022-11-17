@@ -26,13 +26,13 @@ export class Brand {
    * Brand.getAvgRevenue
    * It returns average revenue.
    * @param {number} amount
-   * @return {number} averageRevenue
+   * @return {string} averageRevenue
    */
-  public getAvgRevenue(): number {
-    return this.totalRevenue / this.totalPurchased;
+  public getAvgRevenue(): string {
+    return String(this.totalRevenue / this.totalPurchased);
   }
 
-    /**
+  /**
    * Brand.getAvgRevenue
    * It returns name of the brand
    * @return {string} this.name

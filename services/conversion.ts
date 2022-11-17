@@ -40,8 +40,8 @@ export class Conversion {
    * Conversion.getPurchases
    * It returns number of purchased.
    */
-  public getPurchases(): number {
-    return this.totalPurchased;
+  public getPurchases(): string {
+    return String(this.totalPurchased);
   }
 
   /**
@@ -50,8 +50,8 @@ export class Conversion {
    *   @param {number} sessions
    */
 
-  public getSessions(): number {
-    return this.sessions;
+  public getSessions(): string {
+    return String(this.sessions);
   }
 
   /**

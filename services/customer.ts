@@ -34,10 +34,10 @@ export class Customer {
   /**
    * Customer.getNetRevenue
    * It returns total amount of Revenue.
-   * @return {number} amount
+   * @return {string} amount
    */
   public getNetRevenue(): string {
-    return (this.totalRevenue).toFixed(2);
+    return (this.totalRevenue).toFixed(2) || "0";
   }
 
   /**

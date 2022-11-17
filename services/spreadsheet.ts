@@ -14,7 +14,8 @@ import {
 import { Brand } from "./brand.ts";
 import { Conversion } from "./conversion.ts";
 import { Customer } from "./customer.ts";
-import { Metrics, Row, RowList } from "../types/mod.ts";
+
+import { Row, RowList, ReturnData, BrandList, WeekList, CustomerList, DayList, SessionList   } from "../types/mod.ts";
 
 /**
  * DataSourceOption Interface
@@ -44,7 +45,7 @@ enum EvenTypes {
 export class Spreadsheet {
   dataType: string;
   source: string;
-  data?: RowList;
+  data:RowList;
   constructor(
     options: DataSourceOptions = {
       type: DataTypes.GoogleSheet,
@@ -53,6 +54,7 @@ export class Spreadsheet {
   ) {
     this.dataType = options.type;
     this.source = options.source;
+    this.data = [];
   }
 
   /**
@@ -70,6 +72,7 @@ export class Spreadsheet {
     }
   }
 
+
   /**
    * SpreadSheet.readSpreadsheet
    * A Private function to read Google spread sheet data
@@ -81,7 +84,7 @@ export class Spreadsheet {
       .then((res) => res.json())
       .then((res) => res.values);
 
-    this.data = this.data.slice(1, this.data.length).map((value) =>
+    this.data = this.data.slice(1, this.data.length).map((value:any) =>
       <Row> {
         eventTime: value[0],
         eventType: value[1],
@@ -91,7 +94,7 @@ export class Spreadsheet {
         brand: value[5],
         price: value[6],
         user: value[7],
-        session: value[8],
+        session: value[8]
       }
     );
     return this.data;
@@ -102,7 +105,7 @@ export class Spreadsheet {
    * A Private function to read csv files
    */
   private async readFile() {
-    const content = await parseCsv(
+    const content:any = await parseCsv(
       await Deno.readTextFileSync(this.source),
       {
         skipFirstRow: true,
@@ -119,8 +122,9 @@ export class Spreadsheet {
         ],
       },
     );
+
     this.data = content;
-    return content;
+    return this.data
   }
 
   /**
@@ -138,10 +142,10 @@ export class Spreadsheet {
    */
 
   public async getAvgRevenueBrand() {
-    let result: any = {};
-    const brands: any = {};
+    const result: ReturnData = {};
+    const brands:BrandList = {};
 
-    this.data = await this.readSpreadsheet();
+    await this.readSpreadsheet();
 
     this.data.forEach((element: Row) => {
       if (element.eventType === EvenTypes.Purchase) {
@@ -165,21 +169,21 @@ export class Spreadsheet {
    * @return {object}
    */
   public async getWeeklySessions() {
-    let result = {};
-    const weeks: any = {};
-    const sessions = {};
+    const result:ReturnData = {};
+    const weeks:WeekList = {};
+    const sessions:SessionList = {};
 
     await this.readSpreadsheet();
 
     this.data.forEach((element: Row) => {
       let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
-      let week = weekOfYear(day);
+      let week= String(weekOfYear(day));
 
       if (!weeks[week]) {
         weeks[week] = new Conversion(week);
       }
 
-      if (!sessions[element.sessions]) {
+      if (!sessions[element.session]) {
         sessions[element.session];
         weeks[week].addSession();
       }
@@ -197,21 +201,21 @@ export class Spreadsheet {
    * @return {object}
    */
   public async getDailyConversion() {
-    const result = {};
-    const days = {};
-    const sessions = {};
+    const result:ReturnData = {};
+    const days:DayList = {};
+    const sessions:SessionList = {};
 
     await this.readSpreadsheet();
 
     this.data.forEach((element: Row) => {
-      let day = parse(element.eventTime, "d/M/yyyy H:mm:ss");
-      day = format(day, "dd-MM-yyyy");
+      
+      const day:string = format(parse(element.eventTime, "M/d/yyyy H:mm:ss"), "yyyy-MM-dd");
 
       if (!days[day]) {
         days[day] = new Conversion(day);
       }
 
-      if (!sessions[element.sessions]) {
+      if (!sessions[element.session]) {
         sessions[element.session] = element.session;
         days[day].addSession();
       }
@@ -239,8 +243,8 @@ export class Spreadsheet {
   public async getRevenueListOfCustomer(from: string, end: string) {
     const fromDate = new Date(from);
     const endDate = new Date(end);
-    const result = {};
-    const customers = {};
+    const result:ReturnData = {};
+    const customers:CustomerList = {};
 
     await this.readSpreadsheet();
 

@@ -8,7 +8,7 @@ export const getMetrics = async (ctx: Context) => {
 
   const { id, dimensions, aggregate } = params;
   const responseBody:Metrics = {};
-  
+
   let values = {};
   const spreadsheet = await new Spreadsheet({
     type: "googlesheet",
@@ -18,7 +18,7 @@ export const getMetrics = async (ctx: Context) => {
     id === "revenue" && dimensions === "brand" &&
     aggregate === "avg"
   ) {
-    responseBody["data"] = await spreadsheet.getAvgRevenueBrand();
+    responseBody.data = await spreadsheet.getAvgRevenueBrand();
   } else if (
     id === "sessions" &&
     dimensions === "date.weeknum" &&
@@ -30,7 +30,7 @@ export const getMetrics = async (ctx: Context) => {
     dimensions === "date" &&
     aggregate === "distinct"
   ) {
-    responseBody["values"] = await spreadsheet.getDailyConversion();
+    responseBody.data = await spreadsheet.getDailyConversion();
   } else if (
     id === "net-revenue" &&
     dimensions === "customer" &&
@@ -42,13 +42,14 @@ export const getMetrics = async (ctx: Context) => {
     );
   }
 
-  responseBody["metric"] = id;
-  responseBody["dimensions"] = [dimensions];
-  responseBody["aggregation"] = aggregate;
+  responseBody.metric = id;
+  responseBody.dimensions = [dimensions];
+  responseBody.aggregation = aggregate;
   if (params["filter.date.from"]) {
-    responseBody["date"] = {};
-    responseBody["date"]["from"] = params["filter.date.from"];
-    responseBody["date"]["to"] = params["filter.date.to"];
+
+    responseBody["filter"]["date"] = {};
+    responseBody["filter"]["date"]["from"] = params["filter.date.from"];
+    responseBody["filter"]["date"]["to"] = params["filter.date.to"];
   }
 
   ctx.response.body = responseBody;

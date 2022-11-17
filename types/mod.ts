@@ -24,9 +24,7 @@ export type Row = {
   session: string;
 };
 
-export type RowList = [
-  Row,
-];
+export type RowList = Row[];
 
 export type ReturnData = {
   [key: string]: { value: string; sessions?: string; purchases?: string };
@@ -49,4 +47,4 @@ export type CustomerList = {
 
 export type SessionList = {
   [key:string]: string
-} 
+} ;
